@@ -1,0 +1,16 @@
+2025-02-01 18:19:49,262 - INFO - SELECT DATABASE()
+2025-02-01 18:19:49,262 - INFO - [raw sql] ()
+2025-02-01 18:19:49,265 - INFO - SELECT @@sql_mode
+2025-02-01 18:19:49,265 - INFO - [raw sql] ()
+2025-02-01 18:19:49,267 - INFO - SELECT @@lower_case_table_names
+2025-02-01 18:19:49,267 - INFO - [raw sql] ()
+2025-02-01 18:19:49,269 - INFO - BEGIN (implicit)
+2025-02-01 18:19:49,277 - INFO - SELECT employee_info.`EmployeeID`, employee_info.`EmployeeName`, employee_info.`Queue`, ticket_info.`TicketRaisedBy`, ticket_info.`TicketDescription` 
+FROM employee_info INNER JOIN ticket_info ON ticket_info.`TicketAssignToEmployeeID` = employee_info.`EmployeeID`
+2025-02-01 18:19:49,278 - INFO - [generated in 0.00114s] ()
+2025-02-01 18:19:49,284 - INFO - ROLLBACK
+2025-02-01 18:19:49,289 - INFO - BEGIN (implicit)
+2025-02-01 18:19:49,289 - INFO - SELECT employee_info.`EmployeeID`, employee_info.`EmployeeName`, employee_info.`Queue`, ticket_info.`TicketRaisedBy`, ticket_info.`TicketDescription` 
+FROM employee_info INNER JOIN ticket_info ON ticket_info.`TicketAssignToEmployeeID` = employee_info.`EmployeeID`
+2025-02-01 18:19:49,290 - INFO - [cached since 0.01317s ago] ()
+2025-02-01 18:19:49,293 - INFO - ROLLBACK

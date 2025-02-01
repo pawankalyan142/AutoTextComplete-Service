@@ -1,5 +1,7 @@
+import asyncio
 import logging
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
+from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from langchain_groq import ChatGroq
@@ -7,6 +9,8 @@ from langchain.chains import LLMChain
 from langchain_core.prompts import ChatPromptTemplate, HumanMessagePromptTemplate
 from langchain_core.messages import SystemMessage
 from constants import api_key, google_api_key
+from src.routes import apiRouter
+
 
 # Configure logging to write to app.log
 logging.basicConfig(
@@ -16,7 +20,6 @@ logging.basicConfig(
 )
 
 app = FastAPI()
-
 # Enable CORS middleware
 origins = [
     "http://localhost:5173",  # Adjust this to the frontend URL if different
@@ -42,15 +45,15 @@ groq_chat = ChatGroq(groq_api_key=groq_api_key, model_name=model)
 
 # Define LLM chains for autocomplete and summarization
 autocomplete_prompt = ChatPromptTemplate.from_messages([
-    SystemMessage(content="You are a helpful AI that autocompletes user input in real-time."),
+    SystemMessage(content="Complete the given text with a plausible continuation. Do not provide explanations or additional context, only complete the sentence."),
     HumanMessagePromptTemplate.from_template("{user_input}"),
 ])
 
 autocomplete_chain = LLMChain(llm=groq_chat, prompt=autocomplete_prompt)
 
 summarization_prompt = ChatPromptTemplate.from_messages([
-    SystemMessage(content="You are a concise summarizer that summarizes text into a clear and brief format."),
-    HumanMessagePromptTemplate.from_template("Summarize the following text:\n{text_to_summarize}"),
+    SystemMessage(content="check grammer and spelling mistakes give me with good quality"),
+    HumanMessagePromptTemplate.from_template("Summarize the following text:\n{text_to_summarize}. \n Give me the direct sentence output, without any additional information, summary or context. Just a simple output sentence."),
 ])
 
 summarization_chain = LLMChain(llm=groq_chat, prompt=summarization_prompt)
@@ -62,39 +65,40 @@ class AutocompleteRequest(BaseModel):
 class SummarizeRequest(BaseModel):
     text_to_summarize: str
 
+
 @app.post("/autocomplete")
 async def autocomplete(request: AutocompleteRequest):
-    # Log the incoming request data
     logging.info(f"Received autocomplete request: {request.dict()}")
-    
+
+    # Simulate delay
+    await asyncio.sleep(0.5)  # 500ms delay
+
     try:
         result = autocomplete_chain.predict(user_input=request.user_input)
         logging.info(f"Autocomplete result: {result}")
-        return {"suggestions": result}
+        return {"suggestions": result.split("\n")}  # Split suggestions into a list
     except Exception as e:
         logging.error(f"Error during autocomplete: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/summarize")
 async def summarize(request: SummarizeRequest):
-    # Log the incoming request data
     logging.info(f"Received summarize request: {request.dict()}")
-    
+
     try:
         result = summarization_chain.predict(text_to_summarize=request.text_to_summarize)
-        logging.info(f"Summarization result: {result}")
-        return {"summary": result}
+
+        # Extract only the content from the generated response
+        if 'Summary:' in result:
+            result = result.split("Summary:")[-1].strip()
+
+        logging.info(f"Returning summary: {result}")
+        return {"summary": result}  # Wrap result in a dictionary
     except Exception as e:
         logging.error(f"Error during summarization: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+    
+app.include_router(apiRouter)
 
-@app.options("/autocomplete")
-async def options_autocomplete():
-    # Handle the preflight OPTIONS request
-    return {"message": "Preflight request passed"}
-
-@app.options("/summarize")
-async def options_summarize():
-    # Handle the preflight OPTIONS request
-    return {"message": "Preflight request passed"}
-
+from fastapi import FastAPI
+print(app.routes)
