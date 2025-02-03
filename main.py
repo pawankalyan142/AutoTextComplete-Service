@@ -99,6 +99,3 @@ async def summarize(request: SummarizeRequest):
         raise HTTPException(status_code=500, detail=str(e))
     
 app.include_router(apiRouter)
-
-from fastapi import FastAPI
-print(app.routes)

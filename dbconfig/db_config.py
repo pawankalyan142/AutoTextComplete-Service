@@ -5,7 +5,7 @@ from sqlalchemy import Column, Integer, String
 from sqlalchemy.future import select
 from contextlib import asynccontextmanager
 
-DATABASE_URL = "mysql+asyncmy://root:Mysql123@localhost:3306/world"
+DATABASE_URL = "mysql+asyncmy://itsm_poc:Osicpl#1@192.168.32.242:3306/itsm_poc"
 
 engine = create_async_engine(DATABASE_URL, echo=True)
 AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
